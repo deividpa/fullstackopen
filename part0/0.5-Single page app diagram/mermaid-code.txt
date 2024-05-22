@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Server
+
+    User->>Browser: Navigates to https://studies.cs.helsinki.fi/exampleapp/spa
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/spa
+    activate Server
+    Server-->>Browser: HTML document
+    deactivate Server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+    activate Server
+    Server-->>Browser: main.css
+    deactivate Server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+    activate Server
+    Server-->>Browser: spa.js
+    deactivate Server
+
+    Note right of Browser: The browser starts executing the JavaScript code in spa.js
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+    activate Server
+    Server-->>Browser: [{"content": "66666","date": "2024-05-21T18:32:00.649Z"},{"content": "oi","date": "2024-05-21T18:33:02.305Z"}, ... ]
+    deactivate Server
+
+    Note right of Browser: The browser executes the function that renders the notes on the SPA
