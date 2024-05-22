@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Server
+
+    User->>Browser: Enters note and clicks Save Button
+    Note right of Browser: Browser captures form data
+    
+    Browser->>Server: POST https://studies.cs.helsinki.fi/exampleapp/new_note (with note data)
+    activate Server
+    Server-->>Browser: 302 Found (Redirect to /notes)
+    deactivate Server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/notes
+    activate Server
+    Server-->>Browser: HTML document
+    deactivate Server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+    activate Server
+    Server-->>Browser: the CSS file
+    deactivate Server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/main.js
+    activate Server
+    Server-->>Browser: the JavaScript file
+    deactivate Server
+
+    Note right of Browser: The browser starts executing the JavaScript code that fetches the JSON from the server
+
+    Browser->>Server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+    activate Server
+    Server-->>Browser: [{"content": ".", "date": "2024-05-21T18:09:37.571Z"}, {"content": "s","date": "2024-05-21T18:13:10.068Z"}, ... ]
+    deactivate Server
+
+    Note right of Browser: The browser executes the function that renders the notes
