@@ -26,7 +26,6 @@ const Total =  ({parts}) => {
 
   return <p>Number of exercises {totalExercises}</p>
 }
-
 const App = () => {
 
   const courseInfo = {
