@@ -1,65 +1,137 @@
 import React, { useEffect, useState } from 'react';
+import personService from './Services/personService';
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
-import axios from 'axios';
+import Notification from './components/Notification';
 
 const App = () => {
 
-  const [persons, setPersons] = useState([]);
-  const [newName, setNewName] = useState('');
-  const [newNumber, setNewNumber] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+    const [persons, setPersons] = useState([]);
+    const [newName, setNewName] = useState('');
+    const [newNumber, setNewNumber] = useState('');
+    const [nameSearch, setNameSearch] = useState('');
+    const [message, setMessage] = useState({ type: '', content: '' });
+    
+    const handleNameChange = (event) => setNewName(event.target.value);
+    const handleNumberChange = (event) => setNewNumber(event.target.value);
+    const handleNameSearchChange = (event) => setNameSearch(event.target.value);
 
-  useEffect(() => {
-    axios.get('http://localhost:3001/persons').then(response => {
-      setPersons(response.data);
-    })
-  }, [])
+    useEffect(() => {
+        personService.getAll().then((personsList) => {
+            setPersons(personsList);
+        });
+    }, [])
 
-  const addPerson = (event) => {
-    event.preventDefault();
-    const personObj = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1,
+    const nameExists = () => {
+        
+        const alreadyExists = persons.find(
+            (person) => person.name.toLowerCase() === newName.toLowerCase()
+        );
+        
+        return !!alreadyExists;
     };
 
-    if (persons.some(person => person.name.toLowerCase() === newName.toLowerCase())) {
-      alert(`${newName} is already added to phonebook`);
-    } else {
-      setPersons(persons.concat(personObj));
-      setNewName('');
-      setNewNumber('');
-    }
-};
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (nameExists()) {
+            const response = window.confirm(`${newName} already exists, do you want to change its phone number?`);
+            
+            if (!response) return;
 
-  const handleNameChange = (event) => setNewName(event.target.value);
-  const handleNumberChange = (event) => setNewNumber(event.target.value);
-  const handleSearchChange = (event) => setSearchTerm(event.target.value);
+            const personFound = persons.find(
+                (person) => person.name.toLowerCase() === newName.toLowerCase()
+            );
 
-  const filteredPersons = persons.filter(person =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+            const updatePersonNumber = { ...personFound, number: newNumber };
 
-  return (
-    <div>
-      <h2>Phonebook</h2>
-      <Filter searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
-      
-      <h3>Add new Persons:</h3>
-      <PersonForm 
-        addPerson={addPerson}
-        newName={newName}
-        newNumber={newNumber}
-        handleNameChange={handleNameChange}
-        handleNumberChange={handleNumberChange}
-      />
-      
-      <h3>Numbers</h3>
-      <Persons persons={filteredPersons} />
-    </div>
-  );
+            personService
+                .update(updatePersonNumber.id, updatePersonNumber)
+                .then((updatedPerson) => {
+                    setPersons(
+                        persons.map((person) =>
+                            person.id !== updatedPerson.id
+                                ? person
+                                : updatedPerson
+                        )
+                    );
+
+                    setMessage({
+                        type: 'success',
+                        content: `${updatedPerson.name} updated successfuly`,
+                    })
+                });
+            return;
+        }
+        const newPerson = {
+            name: newName,
+            number: newNumber,
+        };
+
+        personService.create(newPerson).then((createdPerson) => {
+            setPersons([...persons, createdPerson]);
+            setNewName('');
+            setNewNumber('');
+            setMessage({ type: 'success', content: `${newPerson.name} was created succesfuly` });
+        });
+    };
+
+    const handleDeletePerson = (id) => {
+        const foundPerson = persons.find((person) => person.id === id);
+        if (
+            window.confirm(
+            `Do you want to delete ${foundPerson.name} from the phonebook?`
+            )
+        ) {
+            personService
+                .deletePerson(id)
+                .then(() => {
+                    setPersons(
+                        persons.filter(
+                            (person) => person.id !== foundPerson.id
+                        )
+                    );
+                    setMessage({
+                        type: 'success',
+                        content: `${foundPerson.name} has been deleted successfuly`,
+                    });
+                })
+            .catch((error) => {
+                setMessage({
+                    type: `error`,
+                    content: `${foundPerson.name} there was an error deleting the person from the phonebook. ${error}`,
+                });
+            });
+        }
+    };
+
+
+    const filteredPersons = persons.filter(person =>
+        person.name.toLowerCase().includes(nameSearch.toLowerCase())
+    );
+
+    return (
+        <div>
+            <h2>Phonebook</h2>
+            <Notification type={message.type} content={message.content} />
+            <Filter searchTerm={nameSearch} onChange={handleNameSearchChange} />
+            
+            <h3>Add new Persons:</h3>
+            <PersonForm 
+                newName={newName}
+                newNumber={newNumber}
+                onNameChange={handleNameChange}
+                onNumberChange={handleNumberChange}
+                onSubmit={handleSubmit}
+            />
+            
+            <h3>Numbers</h3>
+            <Persons 
+                persons={filteredPersons} 
+                handleDelete={handleDeletePerson} 
+            />
+        </div>
+    );
 };
 
 export default App;
