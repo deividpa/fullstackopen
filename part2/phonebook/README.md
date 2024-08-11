@@ -1,3 +1,3 @@
-PhoneBook project from the fullstackopen course
+PhoneBook project from the fullstackopen course By David Pérez
 
-## Exercises 2.6.-2.10
+## Exercises 2.6.-2.17
