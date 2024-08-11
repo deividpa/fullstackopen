@@ -17,6 +17,12 @@ const App = () => {
     const handleNumberChange = (event) => setNewNumber(event.target.value);
     const handleNameSearchChange = (event) => setNameSearch(event.target.value);
 
+    const clearNotification = () => {
+        setTimeout(() => {
+            setMessage({ type: '', content: '' });
+        }, 5000);
+    };
+
     useEffect(() => {
         personService.getAll().then((personsList) => {
             setPersons(personsList);
@@ -60,6 +66,7 @@ const App = () => {
                         type: 'success',
                         content: `${updatedPerson.name} updated successfuly`,
                     })
+                    clearNotification();
                 });
             return;
         }
@@ -73,6 +80,7 @@ const App = () => {
             setNewName('');
             setNewNumber('');
             setMessage({ type: 'success', content: `${newPerson.name} was created succesfuly` });
+            clearNotification();
         });
     };
 
@@ -95,12 +103,14 @@ const App = () => {
                         type: 'success',
                         content: `${foundPerson.name} has been deleted successfuly`,
                     });
+                    clearNotification();
                 })
             .catch((error) => {
                 setMessage({
                     type: `error`,
-                    content: `${foundPerson.name} there was an error deleting the person from the phonebook. ${error}`,
+                    content: `There was an error deleting ${foundPerson.name} from the phonebook. ${error}`,
                 });
+                clearNotification();
             });
         }
     };
